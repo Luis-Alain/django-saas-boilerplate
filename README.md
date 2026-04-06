@@ -27,7 +27,7 @@ The open-source Django starter kit for building SaaS applications. Auth, payment
 - **Static files** — WhiteNoise, no nginx needed
 - **Deployment** — Gunicorn + Procfile, ready for Railway/Heroku/VPS
 - **Linting** — Ruff with Django-specific rules
-- **16 tests** — landing pages, auth, dashboard, models
+- **16 tests** — landing pages, auth, dashboard, models (45 tests total)
 - **Seed data** — one command to populate demo data
 
 ## Tech stack
@@ -65,7 +65,7 @@ Visit **http://localhost:8000** — admin login: `admin@example.com` / `admin123
 | `make install` | Create virtualenv and install dependencies |
 | `make run` | Start development server |
 | `make migrate` | Run makemigrations + migrate |
-| `make test` | Run 16 tests |
+| `make test` | Run 45 tests |
 | `make seed` | Populate demo data (admin + plans) |
 | `make lint` | Lint with ruff |
 | `make format` | Format with ruff |
@@ -85,7 +85,10 @@ django-saas-boilerplate/
 │   ├── accounts/             # CustomUser (email-only), admin
 │   │   ├── models.py         # CustomUser + CustomUserManager
 │   │   ├── admin.py
-│   │   └── tests.py          # 6 tests
+│   │   └── tests/            # 35 tests (models, views, integration)
+│   │       ├── models/
+│   │       ├── views/
+│   │       └── integration/
 │   ├── dashboard/            # Dashboard, profile, settings
 │   │   ├── models.py         # SubscriptionPlan, UserSettings
 │   │   ├── views.py          # dashboard, profile, settings, plans
@@ -203,39 +206,9 @@ python manage.py collectstatic
 gunicorn core.wsgi --bind 0.0.0.0:8000
 ```
 
-## Premium version
-
-Looking for more? **[DjangoBlaze](https://www.djangoblaze.com)** is the premium version with:
-
-- Teams & multi-tenancy (roles, invitations, team-scoped data)
-- AI chat with OpenAI streaming
-- Blog with markdown, SEO, and sitemaps
-- Google OAuth
-- Onboarding wizard
-- Admin metrics dashboard (MRR, signups chart)
-- 20 slash commands for Claude Code
-- 15 AI-friendly documentation guides
-- 30 ready-to-use prompts
-- 48 passing tests
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
 
-## Author
 
-**Erik Taveras** — Full Stack Developer
-
-- [eriktaveras.com](https://www.eriktaveras.com)
-- [github.com/eriktaveras](https://github.com/eriktaveras)
-- [hello@eriktaveras.com](mailto:hello@eriktaveras.com)
-
----
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/chart?repos=eriktaveras/django-saas-boilerplate&type=date&legend=top-left)](https://www.star-history.com/?repos=eriktaveras%2Fdjango-saas-boilerplate&type=date&legend=top-left)

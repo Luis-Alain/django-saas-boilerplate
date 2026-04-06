@@ -1,4 +1,4 @@
-{% load i18n %}{% load account %}{% user_display user as user_display %}{% load allauth_ui %}
+{% load i18n %}{% load account %}{% user_display user as user_display %}
 
 {% blocktrans with user_email=email %}Bienvenido a MediBook!
 
