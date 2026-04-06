@@ -11,11 +11,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import smtplib
 from pathlib import Path
 
 import dj_database_url
+from django.core.mail.backends import smtp as smtp_backend
 from django.utils.csp import CSP
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -165,6 +167,8 @@ SITE_ID = 1
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_VERIFICATION_URL = 'account_confirm_email'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
@@ -177,6 +181,61 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+
+# Custom SMTP backend that doesn't verify SSL certificates
+class NoVerifyEmailBackend(smtp_backend.EmailBackend):
+    def open(self):
+        if self.connection:
+            return True
+
+        import ssl
+
+        # Create unverified SSL context
+        self.ssl_context = ssl.create_default_context()
+        self.ssl_context.check_hostname = False
+        self.ssl_context.verify_mode = ssl.CERT_NONE
+
+        try:
+            # Get the attributes from the parent class
+            host = self.host
+            port = self.port
+            username = self.username
+            password = self.password
+            timeout = self.timeout
+
+            # Use getattr to safely get optional attributes
+            local_hostname = getattr(self, 'local_hostname', None)
+            use_tls = getattr(self, 'use_tls', True)
+
+            self.connection = smtplib.SMTP(host, port, local_hostname=local_hostname, timeout=timeout)
+            if use_tls:
+                self.connection.starttls(context=self.ssl_context)
+            if username:
+                self.connection.login(username, password)
+        except Exception:
+            if not self.fail_silently:
+                raise
+        return True
+
+
+# Use custom backend for development
+if DEBUG:
+    EMAIL_BACKEND = 'core.settings.NoVerifyEmailBackend'
+
+# Force reload from .env file to override any existing env vars
+_dotenv_values = dotenv_values()
+for key in ['EMAIL_BACKEND', 'EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_USE_TLS', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD']:
+    if _dotenv_values.get(key):
+        # Skip EMAIL_BACKEND in DEBUG - we use custom NoVerifyEmailBackend
+        if key == 'EMAIL_BACKEND' and DEBUG:
+            continue
+        if key == 'EMAIL_PORT':
+            globals()[key] = int(_dotenv_values[key])
+        elif key == 'EMAIL_USE_TLS':
+            globals()[key] = _dotenv_values[key].lower() == 'true'
+        else:
+            globals()[key] = _dotenv_values[key]
 
 # Login/Logout URLs
 LOGIN_REDIRECT_URL = '/dashboard'
